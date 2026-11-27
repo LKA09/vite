@@ -241,6 +241,23 @@ describe('module runner initialization', () => {
     ])
   })
 
+  it('maps stack traces when the module path contains a literal %20', async ({
+    runner,
+    server,
+  }) => {
+    const methodError = await getError(async () => {
+      const mod = await runner.import(
+        '/fixtures/with%20 space/has-error-deep.ts',
+      )
+      mod.main()
+    })
+    expect(serializeStackDeep(server, methodError).slice(0, 3)).toStrictEqual([
+      'Error: crash',
+      '    at crash (<root>/fixtures/with%20 space/has-error-deep.ts:2:9)',
+      '    at Module.main (<root>/fixtures/with%20 space/has-error-deep.ts:6:3)',
+    ])
+  })
+
   it('should not crash when sourceMappingURL pattern appears in string literals', async ({
     runner,
     server,
