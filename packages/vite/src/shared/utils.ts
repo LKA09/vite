@@ -103,13 +103,16 @@ export function promiseWithResolvers<T>(): PromiseWithResolvers<T> {
   return { promise, resolve, reject }
 }
 
-const whitespaceRE = /\s/g
+const sourceURLUnsafeRE = /[%\s]/g
 const percentEncodedRE = /(?:%[0-9a-f]{2})+/gi
-const whitespaceOnlyRE = /^\s+$/
+const sourceURLDecodedRE = /^[%\s]+$/
 
-/** Percent-encodes whitespace, which terminates a `//# sourceURL=` value in V8. */
+/**
+ * Percent-encodes whitespace, which terminates a `//# sourceURL=` value in V8.
+ * Escape literal percent signs too, so decoding cannot change the original ID.
+ */
 export function encodeSourceURL(id: string): string {
-  return id.replace(whitespaceRE, encodeURIComponent)
+  return id.replace(sourceURLUnsafeRE, encodeURIComponent)
 }
 
 /** Reverses {@link encodeSourceURL}. */
@@ -121,6 +124,6 @@ export function decodeSourceURL(url: string): string {
     } catch {
       return match
     }
-    return whitespaceOnlyRE.test(decoded) ? decoded : match
+    return sourceURLDecodedRE.test(decoded) ? decoded : match
   })
 }
